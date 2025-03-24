@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuentIA</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>CuentIA - cuentos infantiles con IA</h1>
+    <p>Usa la inteligencia artificial para crear cuentos infantiles con narración en audio.</p>
+  </header>
+  <main>
+    <section class="container">
+      <div class="left">
+        <h2>Generar sin Registro</h2>
+        <form id="cuentoForm">
+          <div class="form-group">
+            <label for="protagonists">¿Cómo se llaman los protagonistas?</label>
+            <input type="text" id="protagonists" name="protagonists" required>
+          </div>
+          <div class="form-group">
+            <label for="wordCount">Número de palabras:</label>
+            <select id="wordCount" name="wordCount">
+              <option value="500">500 palabras (~2 minutos)</option>
+              <option value="1000">1000 palabras (~4 minutos)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ageRange">Un cuento para niños de:</label>
+            <select id="ageRange" name="ageRange">
+              <option value="2-4">2 a 4 años</option>
+              <option value="5-7" selected>5 a 7 años</option>
+              <option value="8-10">8 a 10 años</option>
+              <option value="11-13">11 a 13 años</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="description">Descripción:</label>
+            <textarea id="description" name="description"></textarea>
+          </div>
+          <button type="button" onclick="generatePrompt()">Generar Prompt</button>
+        </form>
+        <div id="promptOutput"></div>
+        <div id="scriptOutput"></div>
+        <div id="audioOutput"></div>
+        <audio id="audio" controls></audio>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

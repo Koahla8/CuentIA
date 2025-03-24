@@ -28,7 +28,34 @@ function generatePrompt() {
     document.getElementById('promptOutput').appendChild(generateScriptButton);
 }
 
-// Función para generar el audio
+// Función para enviar el prompt al backend y generar el guion
+function generateScript(prompt, tokenLimit, language) {
+    fetch('/api/generateScript', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, tokenLimit })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const script = data.script;  // Cambio clave: ahora accedemos directamente a 'data.script'
+        if (!script) {
+            throw new Error("No se generó el guion.");
+        }
+
+        document.getElementById('scriptOutput').innerHTML = `<textarea id='scriptText'>${script}</textarea>`;
+
+        const generateAudioButton = document.createElement('button');
+        generateAudioButton.innerText = 'Generar Audio (puede tardar 10 segundos)';
+        generateAudioButton.onclick = () => {
+            const updatedScript = document.getElementById('scriptText').value;
+            generateAudio(updatedScript, language);
+        };
+        document.getElementById('scriptOutput').appendChild(generateAudioButton);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Función para enviar el cuento al backend y generar el audio
 function generateAudio(script, language) {
     fetch('/api/generateAudio', {
         method: 'POST',

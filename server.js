@@ -13,21 +13,35 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 app.post('/api/generateScript', async (req, res) => {
     const { prompt, tokenLimit } = req.body;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: tokenLimit || 200
-        })
-    });
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: tokenLimit || 200
+            })
+        });
 
-    const data = await response.json();
-    res.json(data);
+        const data = await response.json();
+
+        // ✔️ Extraer solo el texto del guion del JSON recibido
+        const scriptText = data.choices?.[0]?.message?.content;
+
+        if (!scriptText) {
+            throw new Error("No se generó contenido en el guion.");
+        }
+
+        res.json({ script: scriptText });  // Solo enviamos el texto del guion
+
+    } catch (error) {
+        console.error('Error al generar el guion:', error);
+        res.status(500).json({ error: 'Error al generar el guion. Por favor, intenta de nuevo.' });
+    }
 });
 
 // 🔹 Endpoint para generar el audio con Google TTS
@@ -39,18 +53,28 @@ app.post('/api/generateAudio', async (req, res) => {
         ssmlGender: 'FEMALE'
     };
 
-    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            input: { text: script },
-            voice: voiceConfig,
-            audioConfig: { audioEncoding: 'MP3' }
-        })
-    });
+    try {
+        const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                input: { text: script },
+                voice: voiceConfig,
+                audioConfig: { audioEncoding: 'MP3' }
+            })
+        });
 
-    const data = await response.json();
-    res.json(data);
+        const data = await response.json();
+
+        if (!data.audioContent) {
+            throw new Error("No se recibió contenido de audio.");
+        }
+
+        res.json(data);
+    } catch (error) {
+        console.error('Error al generar el audio:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
 });
 
 // 🔹 Servir el frontend

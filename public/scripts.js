@@ -1,5 +1,5 @@
 // Función para construir el prompt a partir de los datos del formulario
-function generatePrompt() {
+function generateStory() {
     const protagonists = document.getElementById('protagonists').value;
     const description = document.getElementById('description').value;
     const ageRange = document.getElementById('ageRange').value;
@@ -20,16 +20,12 @@ function generatePrompt() {
 - Descripción del tema: ${description}.
 - Asegúrate de que el cuento tenga una estructura clara, un lenguaje sencillo y adecuado para la edad, y que no incluya notas, comentarios adicionales o indicaciones de producción.`;
 
-    document.getElementById('promptOutput').innerHTML = `<textarea id='promptText'>${prompt}</textarea>`;
-    
-    const generateScriptButton = document.createElement('button');
-    generateScriptButton.innerText = 'Generar Cuento (puede tardar 10 segundos)';
-    generateScriptButton.onclick = () => generateScript(prompt, tokenLimit, language);
-    document.getElementById('promptOutput').appendChild(generateScriptButton);
+    // Generar guion y audio directamente
+    generateScriptAndAudio(prompt, tokenLimit, language);
 }
 
-// Función para enviar el prompt al backend y generar el guion
-function generateScript(prompt, tokenLimit, language) {
+// Función para generar el guion y el audio en una sola acción
+function generateScriptAndAudio(prompt, tokenLimit, language) {
     fetch('/api/generateScript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,13 +33,17 @@ function generateScript(prompt, tokenLimit, language) {
     })
     .then(response => response.json())
     .then(data => {
-        const script = data.script;  // Cambio clave: ahora accedemos directamente a 'data.script'
+        const script = data.script;
         if (!script) {
             throw new Error("No se generó el guion.");
         }
 
         document.getElementById('scriptOutput').innerHTML = `<textarea id='scriptText'>${script}</textarea>`;
 
+        // Generar el audio automáticamente
+        generateAudio(script, language);
+
+        // Mostrar el botón para regenerar el audio si se modifica el texto
         const generateAudioButton = document.createElement('button');
         generateAudioButton.innerText = 'Generar Audio (puede tardar 10 segundos)';
         generateAudioButton.onclick = () => {
@@ -55,7 +55,7 @@ function generateScript(prompt, tokenLimit, language) {
     .catch(error => console.error('Error:', error));
 }
 
-// Función para enviar el cuento al backend y generar el audio
+// Función para enviar el guion al backend y generar el audio
 function generateAudio(script, language) {
     fetch('/api/generateAudio', {
         method: 'POST',
